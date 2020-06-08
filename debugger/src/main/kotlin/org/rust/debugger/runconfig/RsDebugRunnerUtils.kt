@@ -9,9 +9,11 @@ import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.BuildNumber
 import com.intellij.xdebugger.XDebugProcess
 import com.intellij.xdebugger.XDebugSession
 import com.intellij.xdebugger.XDebuggerManager
@@ -20,6 +22,7 @@ import com.intellij.xdebugger.impl.ui.XDebugSessionData
 import org.rust.cargo.runconfig.CargoRunStateBase
 import org.rust.debugger.RsDebuggerToolchainService
 import org.rust.debugger.settings.RsDebuggerSettings
+import org.rust.openapiext.computeWithCancelableProgress
 
 object RsDebugRunnerUtils {
 
@@ -46,6 +49,19 @@ object RsDebugRunnerUtils {
             .runContentDescriptor
     }
 
+    @Suppress("UnnecessaryVariable")
+    fun checkToolchainSupported(project: Project, state: CargoRunStateBase): Boolean {
+        if (ApplicationInfo.getInstance().build < BuildNumber.fromString("202")!!) {
+            Messages.showErrorDialog(project, MSVC_IS_NOT_SUPPORTED_MESSAGE, ERROR_MESSAGE_TITLE)
+            return false
+        }
+        val host = project.computeWithCancelableProgress("Checking if toolchain is supported...") {
+            state.rustVersion().rustc?.host.orEmpty()
+        }
+        val isMSVCRustToolchain = "msvc" in host
+        return isMSVCRustToolchain
+    }
+
     fun checkToolchainConfigured(project: Project): Boolean {
         val lldbStatus = RsDebuggerToolchainService.getInstance().getLLDBStatus()
         val (message, action) = when (lldbStatus) {
@@ -62,7 +78,7 @@ object RsDebugRunnerUtils {
         }
 
         if (option == Messages.OK) {
-            val result = RsDebuggerToolchainService.getInstance().downloadDebugger(project);
+            val result = RsDebuggerToolchainService.getInstance().downloadDebugger(project)
             if (result is RsDebuggerToolchainService.DownloadResult.Ok) {
                 RsDebuggerSettings.getInstance().lldbPath = result.lldbDir.absolutePath
                 return true

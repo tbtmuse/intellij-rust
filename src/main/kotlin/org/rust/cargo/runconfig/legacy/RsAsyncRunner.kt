@@ -125,7 +125,7 @@ abstract class RsAsyncRunner(
 
     open fun checkToolchainConfigured(project: Project): Boolean = true
 
-    open fun checkToolchainSupported(state: CargoRunStateBase): Boolean = true
+    open fun checkToolchainSupported(project: Project, state: CargoRunStateBase): Boolean = true
 
     open fun processUnsupportedToolchain(project: Project, promise: AsyncPromise<Binary?>) {}
 
@@ -162,7 +162,7 @@ abstract class RsAsyncRunner(
 
                         override fun run(indicator: ProgressIndicator) {
                             indicator.isIndeterminate = true
-                            if (!checkToolchainSupported(state)) {
+                            if (!checkToolchainSupported(project, state)) {
                                 result = BuildResult.UnsupportedToolchain
                                 return
                             }

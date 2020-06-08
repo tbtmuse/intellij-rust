@@ -5,16 +5,13 @@
 
 package org.rust.debugger.runconfig
 
-import com.intellij.execution.configurations.RunProfile
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
+import org.rust.cargo.runconfig.CargoRunStateBase
 
 class RsDebugRunner : RsDebugRunnerBase() {
 
-    override fun canRun(executorId: String, profile: RunProfile): Boolean {
-        if (!super.canRun(executorId, profile)) return false
-        return SystemInfo.isMac || SystemInfo.isLinux
-    }
+    override fun checkToolchainSupported(project: Project, state: CargoRunStateBase): Boolean =
+        RsDebugRunnerUtils.checkToolchainSupported(project, state)
 
     override fun checkToolchainConfigured(project: Project): Boolean =
         RsDebugRunnerUtils.checkToolchainConfigured(project)

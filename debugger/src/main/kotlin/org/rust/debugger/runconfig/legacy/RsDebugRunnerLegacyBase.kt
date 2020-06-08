@@ -10,7 +10,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.SystemInfo
 import org.jetbrains.concurrency.AsyncPromise
 import org.rust.cargo.runconfig.CargoRunStateBase
 import org.rust.cargo.runconfig.buildtool.CargoBuildManager.isBuildToolWindowEnabled
@@ -36,8 +35,7 @@ abstract class RsDebugRunnerLegacyBase : RsAsyncRunner(DefaultDebugExecutor.EXEC
         promise.setResult(null)
     }
 
-    override fun checkToolchainSupported(state: CargoRunStateBase): Boolean =
-        !(SystemInfo.isWindows && "msvc" in state.rustVersion().rustc?.host.orEmpty())
+    override fun checkToolchainSupported(project: Project, state: CargoRunStateBase): Boolean = true
 
     companion object {
         const val RUNNER_ID: String = "RsDebugRunnerLegacy"

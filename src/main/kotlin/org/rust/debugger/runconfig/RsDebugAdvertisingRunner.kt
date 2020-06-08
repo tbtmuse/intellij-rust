@@ -11,12 +11,14 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.ide.IdeBundle
 import com.intellij.ide.plugins.InstalledPluginsState
 import com.intellij.ide.plugins.PluginManagerCore
+import com.intellij.openapi.application.ApplicationInfo
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.ex.ApplicationManagerEx
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.updateSettings.impl.pluginsAdvertisement.PluginsAdvertiser
+import com.intellij.openapi.util.BuildNumber
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.util.PlatformUtils
 import org.rust.cargo.runconfig.RsDefaultProgramRunnerBase
@@ -27,7 +29,9 @@ class RsDebugAdvertisingRunner : RsDefaultProgramRunnerBase() {
     override fun canRun(executorId: String, profile: RunProfile): Boolean {
         if (executorId != DefaultDebugExecutor.EXECUTOR_ID) return false
         if (profile !is CargoCommandConfiguration) return false
-        if (!(SystemInfo.isMac || SystemInfo.isLinux)) return false
+        if (ApplicationInfo.getInstance().build < BuildNumber.fromString("202")!!) {
+            if (!(SystemInfo.isMac || SystemInfo.isLinux)) return false
+        }
         if (!(PlatformUtils.isIdeaUltimate() || PlatformUtils.isRubyMine())) return false
         val id = PluginId.getId(NATIVE_DEBUG_PLUGIN_ID)
         val plugin = PluginManagerCore.getPlugin(id)
